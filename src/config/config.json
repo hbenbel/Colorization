@@ -1,0 +1,11 @@
+{
+    "data_path": "/content/images",
+    "shuffle_data": false,
+    "batch_size": 128,
+    "learning_rate": 0.0002,
+    "beta": 0.9,
+    "epochs": 200,
+    "lambda": 100,
+    "image_size": [256, 256],
+    "save_path": "/content/results"
+}
