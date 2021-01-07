@@ -88,19 +88,21 @@ def main(config):
                                 shuffle=False
                             )
 
-    g_model = Generator()
-    d_model = Discriminator()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    g_model = Generator().to(device)
+    d_model = Discriminator().to(device)
 
     g_optimizer = Adam(
-                    params=g_model.parameters(),
+                    params=list(g_model.parameters()),
                     lr=config['learning_rate'],
-                    betas=config['beta']
+                    betas=config['betas']
                 )
 
     d_optimizer = Adam(
-                    params=d_model.parameters(),
+                    params=list(d_model.parameters()),
                     lr=config['learning_rate'],
-                    betas=config['beta']
+                    betas=config['betas']
                 )
 
     trainer = DCGANTrainer(
@@ -111,10 +113,10 @@ def main(config):
                 config=config,
                 train_data_loader=train_data_loader,
                 validation_data_loader=validation_data_loader,
-                device='cuda' if torch.cuda.is_available() else 'cpu'
+                device=device
             )
 
-    trainer.train(config["epochs"])
+    trainer.train()
 
 
 if __name__ == "__main__":

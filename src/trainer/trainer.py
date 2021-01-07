@@ -7,16 +7,16 @@ import torch.nn as nn
 
 class DCGANTrainer:
     def __init__(self, g_model, d_model, g_optimizer, d_optimizer, config,
-                 training_data_loader, validation_data_loader, device):
-        self.device = torch.device(device)
-        self.g_model = g_model.to(self.device)
-        self.d_model = d_model.to(self.device)
+                 train_data_loader, validation_data_loader, device):
+        self.device = device
+        self.g_model = g_model
+        self.d_model = d_model
         self.g_optimizer = g_optimizer
         self.d_optimizer = d_optimizer
         self.g_criterion1 = nn.BCELoss()
         self.g_criterion2 = nn.L1Loss()
         self.d_criterion = nn.BCELoss()
-        self.training_data_loader = training_data_loader
+        self.train_data_loader = train_data_loader
         self.validation_data_loader = validation_data_loader
         self.batch_size = config['batch_size']
         self.epochs = config['epochs']
@@ -73,7 +73,7 @@ class DCGANTrainer:
         discriminator_loss = 0
         generator_loss = 0
 
-        for images in self.training_data_loader:
+        for images in self.train_data_loader:
             l_images = images[:, 0, :, :]
             ab_images = images[:, 1:, :, :]
 
@@ -139,8 +139,8 @@ class DCGANTrainer:
                 min_loss = validation_loss
                 self._save_model(epoch)
 
-            training_loss_d = training_loss_d / len(self.training_data_loader)
-            training_loss_g = training_loss_g / len(self.training_data_loader)
+            training_loss_d = training_loss_d / len(self.train_data_loader)
+            training_loss_g = training_loss_g / len(self.train_data_loader)
             validation_loss = validation_loss / len(self.validation_data_loader)
 
             print("Epoch: {}, train loss d: {}, train loss g: {}, validation loss: {}"

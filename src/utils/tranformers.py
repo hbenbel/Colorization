@@ -16,10 +16,13 @@ class LAB2RGB(object):
 
 
 class Resize(object):
-    def __call__(self, image, size):
-        return resize(image, size)
+    def __init__(self, size):
+        self.size = size
+
+    def __call__(self, image):
+        return resize(image, self.size)
 
 
 class NormalizeImage(object):
-    def __cal__(self, image):
+    def __call__(self, image):
         return 2*((image - np.min(image))/(np.max(image) - np.min(image)))-1

@@ -22,25 +22,25 @@ class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__()
 
-        down_sample1 = _down_sample(1, 64)
-        down_sample2 = _down_sample(64, 128)
-        down_sample3 = _down_sample(128, 256)
-        down_sample4 = _down_sample(256, 512)
-        down_sample5 = _down_sample(512, 512)
-        down_sample6 = _down_sample(512, 512)
-        down_sample7 = _down_sample(512, 512)
+        self.down_sample1 = _down_sample(1, 64)
+        self.down_sample2 = _down_sample(64, 128)
+        self.down_sample3 = _down_sample(128, 256)
+        self.down_sample4 = _down_sample(256, 512)
+        self.down_sample5 = _down_sample(512, 512)
+        self.down_sample6 = _down_sample(512, 512)
+        self.down_sample7 = _down_sample(512, 512)
 
-        bottleneck = _down_sample(512, 512)
+        self.bottleneck = _down_sample(512, 512)
 
-        up_sample1 = _up_sample(512, 512)
-        up_sample2 = _up_sample(512, 512)
-        up_sample3 = _up_sample(512, 512)
-        up_sample4 = _up_sample(512, 256)
-        up_sample5 = _up_sample(256, 128)
-        up_sample6 = _up_sample(128, 64)
-        up_sample7 = _up_sample(64, 64)
+        self.up_sample1 = _up_sample(512, 512)
+        self.up_sample2 = _up_sample(512, 512)
+        self.up_sample3 = _up_sample(512, 512)
+        self.up_sample4 = _up_sample(512, 256)
+        self.up_sample5 = _up_sample(256, 128)
+        self.up_sample6 = _up_sample(128, 64)
+        self.up_sample7 = _up_sample(64, 64)
 
-        output = nn.Sequential(
+        self.output = nn.Sequential(
             nn.Conv2d(64, 3, 1, 1),
             nn.Tanh()
         )
@@ -74,12 +74,12 @@ class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
 
-        down_sample1 = _down_sample(3, 64)
-        down_sample2 = _down_sample(64, 128)
-        down_sample3 = _down_sample(128, 256)
-        down_sample4 = _down_sample(256, 512)
+        self.down_sample1 = _down_sample(3, 64)
+        self.down_sample2 = _down_sample(64, 128)
+        self.down_sample3 = _down_sample(128, 256)
+        self.down_sample4 = _down_sample(256, 512)
 
-        output = nn.Sequential(
+        self.output = nn.Sequential(
             nn.Conv2d(512, 1, 4, 1),
             nn.Sigmoid()
         )
