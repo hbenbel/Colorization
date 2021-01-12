@@ -3,34 +3,40 @@ from sys import maxsize
 
 import torch
 import torch.nn as nn
+from tqdm import tqdm
 
 
 class DCGANTrainer:
     def __init__(self, g_model, d_model, g_optimizer, d_optimizer, config,
                  train_data_loader, validation_data_loader, device):
         self.device = device
-        self.g_model = g_model
-        self.d_model = d_model
+        self.g_model = g_model.double()
+        self.d_model = d_model.double()
         self.g_optimizer = g_optimizer
         self.d_optimizer = d_optimizer
-        self.g_criterion1 = nn.BCELoss()
+        self.g_criterion1 = nn.BCEWithLogitsLoss()
         self.g_criterion2 = nn.L1Loss()
-        self.d_criterion = nn.BCELoss()
+        self.d_criterion = nn.BCEWithLogitsLoss()
         self.train_data_loader = train_data_loader
         self.validation_data_loader = validation_data_loader
         self.batch_size = config['batch_size']
         self.epochs = config['epochs']
         self.l1_lambda = config['lambda']
         self.save_path = config['save_path']
+        self.height = config['image_size'][0]
+        self.width = config['image_size'][1]
 
-    def _train_generator(self, l_images, ab_images, fake_ab_images):
+    def _train_generator(self, l_images, ab_images):
         self.g_optimizer.zero_grad()
 
-        prediction = self.g_model(torch.cat([l_images, fake_ab_images], 1))
+        prediction = self.g_model(l_images)
 
         generator_loss1 = self.g_criterion1(
                             prediction,
-                            torch.ones(self.batch_size)
+                            torch.ones(
+                                (self.batch_size, 2, self.height, self.width),
+                                dtype=torch.double
+                            ).to(self.device)
                         ).to(self.device)
 
         generator_loss2 = self.g_criterion2(
@@ -55,12 +61,18 @@ class DCGANTrainer:
 
         real_loss = self.d_criterion(
                         real_prediction,
-                        torch.ones(self.batch_size)
+                        torch.ones(
+                            self.batch_size,
+                            dtype=torch.double
+                        ).to(self.device)
                     ).to(self.device)
 
         fake_loss = self.d_criterion(
                         fake_prediciton,
-                        torch.zeros(self.batch_size)
+                        torch.zeros(
+                            self.batch_size,
+                            dtype=torch.double
+                        ).to(self.device)
                     ).to(self.device)
 
         discriminator_loss = real_loss + fake_loss
@@ -73,9 +85,9 @@ class DCGANTrainer:
         discriminator_loss = 0
         generator_loss = 0
 
-        for images in self.train_data_loader:
-            l_images = images[:, 0, :, :]
-            ab_images = images[:, 1:, :, :]
+        for images in tqdm(self.train_data_loader, desc="Training"):
+            l_images = images[:, 0, :, :].unsqueeze(1).double()
+            ab_images = images[:, 1:, :, :].double()
 
             l_images = l_images.to(self.device)
             ab_images = ab_images.to(self.device)
@@ -90,8 +102,7 @@ class DCGANTrainer:
 
             generator_loss += self._train_generator(
                                 l_images,
-                                ab_images,
-                                fake_ab_images
+                                ab_images
                             )
 
         return discriminator_loss, generator_loss
@@ -100,16 +111,18 @@ class DCGANTrainer:
         validation_loss = 0
 
         self.g_model.eval()
-        for images in self.validation_data_loader:
-            l_images = images[:, 0, :, :]
-            ab_images = images[:, 1:, :, :]
 
-            l_images = l_images.to(self.device)
-            ab_images = ab_images.to(self.device)
+        with torch.no_grad():
+            for images in tqdm(self.validation_data_loader, desc="Validation"):
+                l_images = images[:, 0, :, :].unsqueeze(1).double()
+                ab_images = images[:, 1:, :, :].double()
 
-            fake_ab_images = self.g_model(l_images)
+                l_images = l_images.to(self.device)
+                ab_images = ab_images.to(self.device)
 
-            validation_loss += self.g_criterion2(fake_ab_images, ab_images)
+                fake_ab_images = self.g_model(l_images)
+
+                validation_loss += self.g_criterion2(fake_ab_images, ab_images)
 
         return validation_loss
 
@@ -131,7 +144,7 @@ class DCGANTrainer:
     def train(self):
         min_loss = maxsize
 
-        for epoch in range(self.epochs):
+        for epoch in tqdm(range(self.epochs), desc="Epoch"):
             training_loss_d, training_loss_g = self._train_epoch()
             validation_loss = self._validate_epoch()
 
