@@ -1,1 +1,1 @@
-from .tranformers import LAB2RGB, RGB2LAB, NormalizeImage, Resize
+from .tranformers import RGB2LAB, NormalizeImage, Resize, ToTensor
