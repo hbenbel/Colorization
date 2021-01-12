@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from src.datasets import ImageColorizationDataset
 from src.models import Discriminator, Generator
 from src.trainer import DCGANTrainer
-from src.utils import RGB2LAB, NormalizeImage, Resize
+from src.utils import RGB2LAB, NormalizeImage, Resize, ToTensor
 
 
 def save_list(data, save_path, name):
@@ -60,7 +60,8 @@ def main(config):
     transforms = torchvision.transforms.Compose([
                     Resize(size=(height, width)),
                     RGB2LAB(),
-                    NormalizeImage()
+                    NormalizeImage(),
+                    ToTensor()
                 ])
 
     train_data_loader = DataLoader(
