@@ -1,0 +1,5 @@
+numpy == 1.19.4
+scikit_image == 0.18.1
+torch == 1.7.0
+torchvision == 0.8.1+cu110
+tqdm == 4.56.0
