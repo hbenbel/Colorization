@@ -7,7 +7,7 @@ import random
 import torch
 import torchvision
 from torch.optim import Adam
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, dataloader
 
 from src.datasets import ImageColorizationDataset
 from src.models import Discriminator, Generator
@@ -24,6 +24,11 @@ def save_list(data, save_path, name):
     with open(file_path, 'w') as f:
         for image_path in data:
             f.write(image_path + "\n")
+
+
+def my_collate(batch):
+    batch = list(filter(lambda x: x is not None, batch))
+    return dataloader.default_collate(batch)
 
 
 def splitData(data_path, save_path, train=0.8, test=0.1, shuffle=True):
@@ -70,7 +75,8 @@ def main(config):
                                 transforms=transforms
                             ),
                             batch_size=config['batch_size'],
-                            shuffle=True
+                            shuffle=True,
+                            collate_fn=my_collate
                         )
 
     test_data_loader = DataLoader(
@@ -78,7 +84,8 @@ def main(config):
                                 dataset=test_data,
                                 transforms=transforms
                             ),
-                            shuffle=False
+                            shuffle=False,
+                            collate_fn=my_collate
                         )
 
     validation_data_loader = DataLoader(
@@ -86,7 +93,8 @@ def main(config):
                                     dataset=validation_data,
                                     transforms=transforms
                                 ),
-                                shuffle=False
+                                shuffle=False,
+                                collate_fn=my_collate
                             )
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

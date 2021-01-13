@@ -12,7 +12,10 @@ class ImageColorizationDataset(Dataset):
 
     def __getitem__(self, index):
         data_path = self.dataset[index]
-        image = io.imread(data_path)[:, :, :3]
+        image = io.imread(data_path)
+
+        if(image.shape[-1] != 3):
+            return None
 
         if self.transforms is not None:
             image = self.transforms(image)
