@@ -186,10 +186,12 @@ class DCGANTrainer:
         g_validation, = plt.plot(x, self.log_loss_val, label='validation')
         plt.legend(handles=[g_train, g_validation])
         plt.savefig(os.path.join(self.save_path, 'generator.png'))
+        plt.clf()
 
         d_train, = plt.plot(x, self.log_loss_d, label='training')
         plt.legend(handles=[d_train])
         plt.savefig(os.path.join(self.save_path, 'discriminator.png'))
+        plt.clf()
 
         write_log(
             log=self.log_loss_d,
