@@ -3,9 +3,10 @@ from torch.utils.data import Dataset
 
 
 class ImageColorizationDataset(Dataset):
-    def __init__(self, dataset, transforms=None):
+    def __init__(self, dataset, transforms=None, save_min_max=False):
         self.dataset = dataset
         self.transforms = transforms
+        self.save_min_max = save_min_max
 
     def __len__(self):
         return len(self.dataset)
@@ -18,6 +19,12 @@ class ImageColorizationDataset(Dataset):
             return None
 
         if self.transforms is not None:
-            image = self.transforms(image)
+            try:
+                image, min_val, max_val = self.transforms(image)
+            except TypeError:
+                image = self.transforms(image)
+
+        if self.save_min_max is True:
+            return image, min_val, max_val
 
         return image
