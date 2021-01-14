@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader, dataloader
 
 from src.datasets import ImageColorizationDataset
 from src.models import Discriminator, Generator
+from src.tester import DCGANTester
 from src.trainer import DCGANTrainer
 from src.utils import RGB2LAB, NormalizeImage, Resize, ToTensor
 
@@ -31,7 +32,7 @@ def my_collate(batch):
     return dataloader.default_collate(batch)
 
 
-def splitData(data_path, save_path, train, test, shuffle=True):
+def splitData(data_path, save_path, train, test, shuffle):
     assert os.path.exists(data_path), "data_path given to splitData doesn't exists :("
     assert train + test < 1, "train percentage and test percentage should summup to be < 1 to keep some data for validation :("
 
@@ -63,6 +64,7 @@ def main(config):
     learning_rate = config['learning_rate']
     save_path = config['save_path']
     shuffle_data = config['shuffle_data']
+    test_model = config['test_model']
     train_percentage = config['train_percentage']
     test_percentage = config['test_percentage']
 
@@ -94,7 +96,8 @@ def main(config):
     test_data_loader = DataLoader(
                             ImageColorizationDataset(
                                 dataset=test_data,
-                                transforms=transforms
+                                transforms=transforms,
+                                save_min_max=True
                             ),
                             shuffle=False,
                             collate_fn=my_collate
@@ -138,6 +141,16 @@ def main(config):
             )
 
     trainer.train()
+
+    if test_model is True:
+        tester = DCGANTester(
+                    g_model=g_model,
+                    config=config,
+                    test_data_loader=test_data_loader,
+                    device=device
+                )
+
+        tester.test()
 
 
 if __name__ == "__main__":
