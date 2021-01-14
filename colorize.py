@@ -1,6 +1,7 @@
 import argparse
 import json
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from skimage import color, io
@@ -11,7 +12,6 @@ from src.models import Generator
 
 
 def preprocess(image):
-    image = resize(image, (256, 256))
     image = color.rgb2lab(image)
     min_val = image.min()
     max_val = image.max()
@@ -41,7 +41,8 @@ def main(config):
     save_path = config['save_path']
 
     image = io.imread(image_path)[:, :, :3]
-    image, min_val, max_val = preprocess(image)
+    original_image = resize(image, (256, 256))
+    image, min_val, max_val = preprocess(original_image)
 
     model = Generator().double()
     model.load_state_dict(
@@ -57,10 +58,14 @@ def main(config):
 
     post_processed = postprocess(in_image, prediction, min_val, max_val)
 
-    io.imsave(
-        save_path,
-        post_processed
-    )
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax1.imshow(original_image)
+
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax2.imshow(post_processed)
+
+    fig.savefig(save_path)
 
 
 if __name__ == "__main__":
