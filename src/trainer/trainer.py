@@ -1,9 +1,16 @@
 import os
 from sys import maxsize
 
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from tqdm import tqdm
+
+
+def write_log(log, save_path):
+    with open(save_path, 'w') as f:
+        for i, val in enumerate(log):
+            f.write('Epoch {}: {}\n'.format(str(i), str(val)))
 
 
 class DCGANTrainer:
@@ -25,6 +32,10 @@ class DCGANTrainer:
         self.save_path = config['save_path']
         self.height = config['image_size'][0]
         self.width = config['image_size'][1]
+        self.early_stop_patience = config['early_stop_patience']
+        self.log_loss_d = []
+        self.log_loss_g = []
+        self.log_loss_val = []
 
     def _train_generator(self, l_images, ab_images):
         self.g_optimizer.zero_grad()
@@ -141,6 +152,44 @@ class DCGANTrainer:
             os.path.join(saving_path, 'discriminator.pth')
         )
 
+    def _early_stop(self):
+        patience = self.early_stop_patience
+        logs = self.log_loss_val
+        logs = logs[len(logs) - patience:]
+
+        return all(logs[i] <= logs[i + 1] for i in range(len(logs) - 1))
+
+    def _save_logs(self):
+        log_save_path = os.path.join(self.save_path, 'logs')
+        if not os.path.exists(log_save_path):
+            os.makedirs(log_save_path)
+
+        x = list(range(len(self.log_loss_g)))
+
+        g_train, = plt.plot(x, self.log_loss_g, label='training')
+        g_validation, = plt.plot(x, self.log_loss_val, label='validation')
+        plt.legend(handles=[g_train, g_validation])
+        plt.savefig(os.path.join(self.save_path, 'generator.png'))
+
+        d_train, = plt.plot(x, self.log_loss_d, label='training')
+        plt.legend(handles=[d_train])
+        plt.savefig(os.path.join(self.save_path, 'discriminator.png'))
+
+        write_log(
+            log=self.log_loss_d,
+            save_path=os.path.join(log_save_path, 'loss_discriminator.txt')
+        )
+
+        write_log(
+            log=self.log_loss_g,
+            save_path=os.path.join(log_save_path, 'loss_generator.txt')
+        )
+
+        write_log(
+            log=self.log_loss_val,
+            save_path=os.path.join(log_save_path, 'validation_generator.txt')
+        )
+
     def train(self):
         min_loss = maxsize
 
@@ -158,3 +207,12 @@ class DCGANTrainer:
 
             print("Epoch: {}, train loss d: {}, train loss g: {}, validation loss: {}"
                   .format(epoch + 1, training_loss_d, training_loss_g, validation_loss))
+
+            self.log_loss_d.append(training_loss_d)
+            self.log_loss_g.append(training_loss_g)
+            self.log_loss_val.append(validation_loss)
+
+            if self._early_stop():
+                break
+
+        self._save_logs()
