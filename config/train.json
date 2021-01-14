@@ -10,5 +10,6 @@
     "save_path": "/content/results",
     "train_percentage": 0.8,
     "test_percentage": 0.1,
-    "early_stop_patience": 5
+    "early_stop_patience": 5,
+    "test_model": false
 }
