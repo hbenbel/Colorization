@@ -1,5 +1,5 @@
 {
-    "data_path": "/images",
+    "data_path": "/content/images",
     "shuffle_data": false,
     "batch_size": 8,
     "learning_rate": 0.0002,
@@ -7,5 +7,8 @@
     "epochs": 200,
     "lambda": 100,
     "image_size": [256, 256],
-    "save_path": "/results"
+    "save_path": "/content/results",
+    "train_percentage": 0.8,
+    "test_percentage": 0.1,
+    "early_stop_patience": 5
 }
