@@ -60,7 +60,7 @@ class DCGANTester:
     def test(self):
         for images, min_vals, max_vals in tqdm(
                                                 self.test_data_loader,
-                                                desc="Validation"
+                                                desc="Testing"
                                             ):
             l_images = images[:, 0, :, :].unsqueeze(1).double()
             ab_images = images[:, 1:, :, :].double()
