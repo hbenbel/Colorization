@@ -19,10 +19,7 @@ class ImageColorizationDataset(Dataset):
             return None
 
         if self.transforms is not None:
-            try:
-                image, min_val, max_val = self.transforms(image)
-            except TypeError:
-                image = self.transforms(image)
+            image, min_val, max_val = self.transforms(image)
 
         if self.save_min_max is True:
             return image, min_val, max_val

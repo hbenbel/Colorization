@@ -26,7 +26,6 @@ class DCGANTrainer:
         self.d_criterion = nn.BCEWithLogitsLoss()
         self.train_data_loader = train_data_loader
         self.validation_data_loader = validation_data_loader
-        self.batch_size = config['batch_size']
         self.epochs = config['epochs']
         self.l1_lambda = config['lambda']
         self.save_path = config['save_path']
@@ -44,8 +43,8 @@ class DCGANTrainer:
 
         generator_loss1 = self.g_criterion1(
                             prediction,
-                            torch.ones(
-                                (self.batch_size, 2, self.height, self.width),
+                            torch.ones_like(
+                                prediction,
                                 dtype=torch.double
                             ).to(self.device)
                         ).to(self.device)
@@ -66,22 +65,22 @@ class DCGANTrainer:
 
         real_prediction = self.d_model(torch.cat([l_images, ab_images], 1))
 
-        fake_prediciton = self.d_model(
+        fake_prediction = self.d_model(
                             torch.cat([l_images, fake_ab_images], 1)
                         )
 
         real_loss = self.d_criterion(
                         real_prediction,
-                        torch.ones(
-                            self.batch_size,
+                        torch.ones_like(
+                            real_prediction,
                             dtype=torch.double
                         ).to(self.device)
                     ).to(self.device)
 
         fake_loss = self.d_criterion(
-                        fake_prediciton,
-                        torch.zeros(
-                            self.batch_size,
+                        fake_prediction,
+                        torch.zeros_like(
+                            fake_prediction,
                             dtype=torch.double
                         ).to(self.device)
                     ).to(self.device)
@@ -133,7 +132,20 @@ class DCGANTrainer:
 
                 fake_ab_images = self.g_model(l_images)
 
-                validation_loss += self.g_criterion2(fake_ab_images, ab_images)
+                generator_loss1 = self.g_criterion1(
+                                    fake_ab_images,
+                                    torch.ones_like(
+                                        fake_ab_images,
+                                        dtype=torch.double
+                                    ).to(self.device)
+                                ).to(self.device)
+
+                generator_loss2 = self.g_criterion2(
+                                    fake_ab_images,
+                                    ab_images
+                                )
+
+                validation_loss += generator_loss1 + self.l1_lambda * generator_loss2
 
         return validation_loss
 
@@ -155,6 +167,10 @@ class DCGANTrainer:
     def _early_stop(self):
         patience = self.early_stop_patience
         logs = self.log_loss_val
+
+        if len(logs) < patience:
+            return False
+
         logs = logs[len(logs) - patience:]
 
         return all(logs[i] <= logs[i + 1] for i in range(len(logs) - 1))
@@ -201,9 +217,9 @@ class DCGANTrainer:
                 min_loss = validation_loss
                 self._save_model(epoch)
 
-            training_loss_d = training_loss_d / len(self.train_data_loader)
-            training_loss_g = training_loss_g / len(self.train_data_loader)
-            validation_loss = validation_loss / len(self.validation_data_loader)
+            training_loss_d = (training_loss_d / len(self.train_data_loader)).item()
+            training_loss_g = (training_loss_g / len(self.train_data_loader)).item()
+            validation_loss = (validation_loss / len(self.validation_data_loader)).item()
 
             print("Epoch: {}, train loss d: {}, train loss g: {}, validation loss: {}"
                   .format(epoch + 1, training_loss_d, training_loss_g, validation_loss))

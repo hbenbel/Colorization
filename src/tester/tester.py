@@ -15,8 +15,9 @@ class DCGANTester:
         self.cpt = 0
 
     def _postprocess(self, in_image, prediction, min_val, max_val):
-        in_image = in_image[0, :, :, :]
-        prediction = prediction[0, :, :, :]
+        in_image = in_image.cpu().data.numpy()
+        min_val = min_val.item()
+        max_val = max_val.item()
 
         predicted_image = np.vstack([in_image, prediction])
         predicted_image = np.moveaxis(predicted_image, 0, -1)
@@ -58,7 +59,7 @@ class DCGANTester:
 
     def test(self):
         for images, min_vals, max_vals in tqdm(
-                                                self.testing_data_loader,
+                                                self.test_data_loader,
                                                 desc="Validation"
                                             ):
             l_images = images[:, 0, :, :].unsqueeze(1).double()
