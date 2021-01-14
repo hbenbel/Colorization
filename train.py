@@ -31,8 +31,9 @@ def my_collate(batch):
     return dataloader.default_collate(batch)
 
 
-def splitData(data_path, save_path, train=0.8, test=0.1, shuffle=True):
+def splitData(data_path, save_path, train, test, shuffle=True):
     assert os.path.exists(data_path), "data_path given to splitData doesn't exists :("
+    assert train + test < 1, "train percentage and test percentage should summup to be < 1 to keep some data for validation :("
 
     data = glob.glob(os.path.join(data_path, '*'))
 
@@ -55,13 +56,24 @@ def splitData(data_path, save_path, train=0.8, test=0.1, shuffle=True):
 
 
 def main(config):
+    batch_size = config['batch_size']
+    betas = config['betas']
+    data_path = config['data_path']
+    height, width = config['image_size'][0], config['image_size'][1]
+    learning_rate = config['learning_rate']
+    save_path = config['save_path']
+    shuffle_data = config['shuffle_data']
+    train_percentage = config['train_percentage']
+    test_percentage = config['test_percentage']
+
     train_data, test_data, validation_data = splitData(
-                                                data_path=config['data_path'],
-                                                save_path=config['save_path'],
-                                                shuffle=config['shuffle_data']
+                                                data_path=data_path,
+                                                save_path=save_path,
+                                                train=train_percentage,
+                                                test=test_percentage,
+                                                shuffle=shuffle_data
                                             )
 
-    height, width = config['image_size'][0], config['image_size'][1]
     transforms = torchvision.transforms.Compose([
                     Resize(size=(height, width)),
                     RGB2LAB(),
@@ -74,7 +86,7 @@ def main(config):
                                 dataset=train_data,
                                 transforms=transforms
                             ),
-                            batch_size=config['batch_size'],
+                            batch_size=batch_size,
                             shuffle=True,
                             collate_fn=my_collate
                         )
@@ -104,14 +116,14 @@ def main(config):
 
     g_optimizer = Adam(
                     params=list(g_model.parameters()),
-                    lr=config['learning_rate'],
-                    betas=config['betas']
+                    lr=learning_rate,
+                    betas=betas
                 )
 
     d_optimizer = Adam(
                     params=list(d_model.parameters()),
-                    lr=config['learning_rate'],
-                    betas=config['betas']
+                    lr=learning_rate,
+                    betas=betas
                 )
 
     trainer = DCGANTrainer(
