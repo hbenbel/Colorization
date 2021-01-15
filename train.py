@@ -96,8 +96,7 @@ def main(config):
     test_data_loader = DataLoader(
                             ImageColorizationDataset(
                                 dataset=test_data,
-                                transforms=transforms,
-                                save_min_max=True
+                                transforms=transforms
                             ),
                             shuffle=False,
                             collate_fn=my_collate

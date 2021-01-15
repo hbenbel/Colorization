@@ -14,26 +14,23 @@ class DCGANTester:
         self.save_path = config['save_path']
         self.cpt = 0
 
-    def _postprocess(self, in_image, prediction, min_val, max_val):
+    def _postprocess(self, in_image, prediction):
         in_image = in_image.cpu().data.numpy()
-        min_val = min_val.item()
-        max_val = max_val.item()
 
         predicted_image = np.vstack([in_image, prediction])
         predicted_image = np.moveaxis(predicted_image, 0, -1)
-        predicted_image += 1
-        predicted_image /= 2
-        predicted_image *= (max_val - min_val)
-        predicted_image += min_val
+        predicted_image[:, :, 0] *= 100
+        predicted_image[:, :, 1] *= 128
+        predicted_image[:, :, 2] *= 128
         predicted_image = color.lab2rgb(predicted_image)
 
         return predicted_image
 
-    def _postprocess_all(self, in_images, predictions, min_vals, max_vals):
-        data = list(zip(in_images, predictions, min_vals, max_vals))
+    def _postprocess_all(self, in_images, predictions):
+        data = list(zip(in_images, predictions))
         return list(
                     map(
-                        lambda x: self._postprocess(x[0], x[1], x[2], x[3]),
+                        lambda x: self._postprocess(x[0], x[1]),
                         data
                     )
                 )
@@ -58,18 +55,13 @@ class DCGANTester:
         return list(map(lambda x: self._save_result(x[0], x[1]), data))
 
     def test(self):
-        for images, min_vals, max_vals in tqdm(
-                                                self.test_data_loader,
-                                                desc="Testing"
-                                            ):
+        for images in tqdm(self.test_data_loader, desc="Testing"):
             l_images = images[:, 0, :, :].unsqueeze(1).double()
             ab_images = images[:, 1:, :, :].double()
 
             original_images = self._postprocess_all(
                                 in_images=l_images,
-                                predictions=ab_images,
-                                min_vals=min_vals,
-                                max_vals=max_vals
+                                predictions=ab_images
                             )
 
             predicted_ab_images = self.g_model(
@@ -78,9 +70,7 @@ class DCGANTester:
 
             predicted_images = self._postprocess_all(
                                     in_images=l_images,
-                                    predictions=predicted_ab_images,
-                                    min_vals=min_vals,
-                                    max_vals=max_vals
+                                    predictions=predicted_ab_images
                                 )
 
             self._save_results(original_images, predicted_images)
