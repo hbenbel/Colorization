@@ -38,13 +38,14 @@ def main(config):
     image_path = config['image_path']
     generator_path = config['generator_path']
     save_path = config['save_path']
+    height, width = config['image_size'][0], config['image_size'][1]
 
     image = io.imread(image_path)
     if len(image.shape) == 2:
         image = color.gray2rgb(image)
 
     image = image[:, :, :3]
-    original_image = resize(image, (256, 256))
+    original_image = resize(image, (height, width))
     image = preprocess(original_image)
 
     model = Generator().double()

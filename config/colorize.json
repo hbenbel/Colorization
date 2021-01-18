@@ -1,5 +1,6 @@
 {
     "image_path": "",
     "generator_path": "",
-    "save_path": ""
+    "save_path": "",
+    "image_size": [256, 256]
 }
