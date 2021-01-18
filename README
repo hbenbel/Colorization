@@ -8,7 +8,7 @@
                                                              
 
 DESCRIPTION
-    Grayscale image colorization using DCGAN
+    Grayscale image colorization using a conditional DCGAN
 
 USAGE
     First make sure that you have every packages in the requirements.txt file.
