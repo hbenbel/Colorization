@@ -74,7 +74,7 @@ def main(config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-                description='Train Image Colorization Algorithm'
+                description='Colorize Grayscale Image'
             )
 
     parser.add_argument(
