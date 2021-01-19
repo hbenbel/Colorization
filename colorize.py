@@ -71,7 +71,7 @@ def main(config):
     ax2.imshow(post_processed)
     ax2.axis('off')
 
-    fig.savefig(save_path)
+    fig.savefig(save_path, bbox_inches='tight', pad_inches=0)
 
 
 if __name__ == "__main__":

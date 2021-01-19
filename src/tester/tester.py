@@ -49,7 +49,11 @@ class DCGANTester:
         ax2.imshow(predicted_image)
         ax2.axis('off')
 
-        fig.savefig(os.path.join(test_save_path, str(self.cpt) + '.png'))
+        fig.savefig(
+            os.path.join(test_save_path, str(self.cpt) + '.png'),
+            bbox_inches='tight',
+            pad_inches=0
+        )
 
         self.cpt += 1
 
