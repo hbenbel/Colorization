@@ -43,9 +43,12 @@ class DCGANTester:
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 2, 1)
         ax1.imshow(original_image)
+        ax1.axis('off')
 
         ax2 = fig.add_subplot(1, 2, 2)
         ax2.imshow(predicted_image)
+        ax2.axis('off')
+
         fig.savefig(os.path.join(test_save_path, str(self.cpt) + '.png'))
 
         self.cpt += 1

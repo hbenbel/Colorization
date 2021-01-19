@@ -65,9 +65,11 @@ def main(config):
     fig = plt.figure()
     ax1 = fig.add_subplot(1, 2, 1)
     ax1.imshow(original_image)
+    ax1.axis('off')
 
     ax2 = fig.add_subplot(1, 2, 2)
     ax2.imshow(post_processed)
+    ax2.axis('off')
 
     fig.savefig(save_path)
 
