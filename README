@@ -13,6 +13,7 @@ DESCRIPTION
 USAGE
     First make sure that you have every packages in the requirements.txt file.
 
+    The input image resolution should be either 32x32 or 256x256.
     To train using DCGAN change the config/train.json file to put the correct
     parameters and launch the training using:
         python train.py --config config/train.json
