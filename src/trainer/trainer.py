@@ -29,8 +29,6 @@ class DCGANTrainer:
         self.epochs = config['epochs']
         self.l1_lambda = config['lambda']
         self.save_path = config['save_path']
-        self.height = config['image_size'][0]
-        self.width = config['image_size'][1]
         self.early_stop_patience = config['early_stop_patience']
         self.log_loss_d = []
         self.log_loss_g = []

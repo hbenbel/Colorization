@@ -10,7 +10,8 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader, dataloader
 
 from src.datasets import ImageColorizationDataset
-from src.models import Discriminator, Generator
+from src.models import (Discriminator32, Discriminator256, Generator32,
+                        Generator256)
 from src.tester import DCGANTester
 from src.trainer import DCGANTrainer
 from src.utils import RGB2LAB, NormalizeImage, Resize, ToTensor
@@ -33,9 +34,6 @@ def my_collate(batch):
 
 
 def splitData(data_path, save_path, train, test, shuffle):
-    assert os.path.exists(data_path), "data_path given to splitData doesn't exists :("
-    assert train + test < 1, "train percentage and test percentage should summup to be < 1 to keep some data for validation :("
-
     data = glob.glob(os.path.join(data_path, '*'))
 
     if shuffle is True:
@@ -56,17 +54,27 @@ def splitData(data_path, save_path, train, test, shuffle):
     return train_data, test_data, validation_data
 
 
+def getModel(image_size, device):
+    if image_size == 32:
+        return Generator32().to(device), Discriminator32().to(device)
+    return Generator256().to(device), Discriminator256().to(device)
+
+
 def main(config):
     batch_size = config['batch_size']
     betas = config['betas']
     data_path = config['data_path']
-    height, width = config['image_size'][0], config['image_size'][1]
+    image_size = config['image_size']
     learning_rate = config['learning_rate']
     save_path = config['save_path']
     shuffle_data = config['shuffle_data']
     test_model = config['test_model']
     train_percentage = config['train_percentage']
     test_percentage = config['test_percentage']
+
+    assert os.path.exists(data_path), "data_path given to splitData doesn't exists :("
+    assert train_percentage + test_percentage < 1, "train percentage and test percentage should summup to be < 1 to keep some data for validation :("
+    assert image_size == 32 or image_size == 256, "image_size should be equal to 32 or 256 for the training :("
 
     train_data, test_data, validation_data = splitData(
                                                 data_path=data_path,
@@ -77,7 +85,7 @@ def main(config):
                                             )
 
     transforms = torchvision.transforms.Compose([
-                    Resize(size=(height, width)),
+                    Resize(size=(image_size, image_size)),
                     RGB2LAB(),
                     NormalizeImage(),
                     ToTensor()
@@ -113,8 +121,7 @@ def main(config):
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    g_model = Generator().to(device)
-    d_model = Discriminator().to(device)
+    g_model, d_model = getModel(image_size, device)
 
     g_optimizer = Adam(
                     params=list(g_model.parameters()),

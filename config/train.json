@@ -6,7 +6,7 @@
     "betas": [0.5, 0.999],
     "epochs": 200,
     "lambda": 100,
-    "image_size": [256, 256],
+    "image_size": 256,
     "save_path": "",
     "train_percentage": 0.8,
     "test_percentage": 0.1,

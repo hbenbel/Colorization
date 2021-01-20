@@ -8,7 +8,7 @@ from skimage import color, io
 from skimage.transform import resize
 from torch import from_numpy
 
-from src.models import Generator
+from src.models import Generator32, Generator256
 
 
 def preprocess(image):
@@ -34,21 +34,29 @@ def postprocess(in_image, prediction):
     return predicted_image
 
 
+def getModel(image_size):
+    if image_size == 32:
+        return Generator32()
+    return Generator256()
+
+
 def main(config):
     image_path = config['image_path']
     generator_path = config['generator_path']
     save_path = config['save_path']
-    height, width = config['image_size'][0], config['image_size'][1]
+    image_size = config['image_size']
+
+    assert image_size == 32 or image_size == 256, "image_size should be equal to 32 or 256 for the training :("
 
     image = io.imread(image_path)
     if len(image.shape) == 2:
         image = color.gray2rgb(image)
 
     image = image[:, :, :3]
-    original_image = resize(image, (height, width))
+    original_image = resize(image, (image_size, image_size))
     image = preprocess(original_image)
 
-    model = Generator().double()
+    model = getModel(image_size).double()
     model.load_state_dict(
         torch.load(
             generator_path,
